@@ -1,0 +1,120 @@
+local Players = game:GetService("Players")
+local P = Players.LocalPlayer
+local U = game:GetService("UserInputService")
+local RS = game:GetService("RunService")
+local Cam = workspace.CurrentCamera
+local mouse = P:GetMouse()
+
+local gui = Instance.new("ScreenGui")
+gui.Parent = P:WaitForChild("PlayerGui")
+gui.ResetOnSpawn = false
+
+local m = Instance.new("Frame")
+m.Parent = gui
+m.Size = UDim2.new(0,380,0,280)
+m.Position = UDim2.new(.5,-190,.5,-140)
+m.BackgroundColor3 = Color3.fromRGB(30,30,30)
+Instance.new("UICorner",m).CornerRadius = UDim.new(0,10)
+
+local t = Instance.new("TextLabel")
+t.Parent = m
+t.Size = UDim2.new(1,0,0,35)
+t.Text = "QUABO SCRIPT"
+t.BackgroundTransparency = 1
+t.TextColor3 = Color3.new(1,1,1)
+t.Font = Enum.Font.GothamBold
+t.TextSize = 20
+
+local function Toggle(n,y,cb)
+	local b = Instance.new("TextButton")
+	b.Parent = m
+	b.Size = UDim2.new(.9,0,0,30)
+	b.Position = UDim2.new(.05,0,0,y)
+	b.Text = n.." : 꺼짐"
+	b.BackgroundColor3 = Color3.fromRGB(45,45,45)
+	b.TextColor3 = Color3.new(1,1,1)
+	b.Font = Enum.Font.Gotham
+	b.TextSize = 16
+	Instance.new("UICorner",b)
+
+	b.MouseButton1Click:Connect(function()
+		local s = not _G[n]
+		_G[n] = s
+		b.Text = n.." : "..(s and "켜짐" or "꺼짐")
+		cb(s)
+	end)
+end
+
+Toggle("레이지봇",50,function()end)
+Toggle("레짓에임",90,function()end)
+Toggle("보이드스팸",130,function()end)
+
+Toggle("ESP",170,function(v)
+	_G.ESP = v
+
+	if v then
+		for _,p in pairs(Players:GetPlayers()) do
+			if p ~= P and p.Character then
+				local h = Instance.new("Highlight")
+				h.Parent = p.Character
+				h.FillColor = Color3.new(1,0,0)
+				h.FillTransparency = 0.4
+			end
+		end
+	else
+		for _,o in pairs(workspace:GetDescendants()) do
+			if o:IsA("Highlight") then
+				o:Destroy()
+			end
+		end
+	end
+end)
+
+Toggle("플라이",210,function()end)
+Toggle("스핀",250,function()end)
+
+local flySpeed = 50
+local spinSpeed = 50
+
+RS.RenderStepped:Connect(function()
+	if _G["플라이"] and P.Character and P.Character:FindFirstChild("HumanoidRootPart") then
+		local hrp = P.Character.HumanoidRootPart
+		local mvec = Vector3.new()
+
+		if U:IsKeyDown(Enum.KeyCode.W) then mvec += Cam.CFrame.LookVector end
+		if U:IsKeyDown(Enum.KeyCode.S) then mvec -= Cam.CFrame.LookVector end
+		if U:IsKeyDown(Enum.KeyCode.A) then mvec -= Cam.CFrame.RightVector end
+		if U:IsKeyDown(Enum.KeyCode.D) then mvec += Cam.CFrame.RightVector end
+		if U:IsKeyDown(Enum.KeyCode.Space) then mvec += Vector3.new(0,1,0) end
+		if U:IsKeyDown(Enum.KeyCode.LeftShift) then mvec -= Vector3.new(0,1,0) end
+
+		if mvec.Magnitude > 0 then
+			hrp.Velocity = mvec.Unit * flySpeed
+		end
+	end
+end)
+
+RS.Heartbeat:Connect(function(dt)
+	if _G["스핀"] and P.Character and P.Character:FindFirstChild("HumanoidRootPart") then
+		local hrp = P.Character.HumanoidRootPart
+		hrp.CFrame = hrp.CFrame * CFrame.Angles(0, math.rad(spinSpeed*dt*360), 0)
+	end
+end)
+
+mouse.Button1Down:Connect(function()
+	if _G["보이드스팸"] then
+		task.spawn(function()
+			while _G["보이드스팸"] and mouse:IsButtonPressed(Enum.UserInputType.MouseButton1) do
+				task.wait(0.01)
+			end
+		end)
+	end
+end)
+
+U.InputBegan:Connect(function(i)
+	if i.KeyCode == Enum.KeyCode.RightShift then
+		gui.Enabled = not gui.Enabled
+	end
+end)
+
+print("QUABO Loaded")
